@@ -10,6 +10,8 @@ phases:
       - ls
       - mkdir -p src/config/firestore
       - aws s3 cp s3://firestoreconfig/secret.json src/config/firestore/config.json
+      - mkdir -p build/config/firestore
+      - cp src/config/firestore/config.json build/config/firestore/config.json
       - ls -a
       - ls src/config/firestore
       - cat src/config/firestore/config.json
