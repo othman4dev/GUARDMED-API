@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import serviceAccount from '../config/firestore/secret.json';
+import serviceAccount from 'src/config/firestore/secret.json';
 import { ConfigService } from '@nestjs/config';
 import { FieldValue } from 'firebase-admin/firestore';
 import { DatabaseTables } from 'src/enums/database-tables.enum';
