@@ -4,12 +4,15 @@ phases:
   install:
     commands:
       - npm install
+  pre_build:
+    commands:
+      - mkdir -p config/firestore
+      - touch config/firestore/config.json
+      - echo $FIREBASE_CONFIG > config/firestore/config.json
   build:
     commands:
       - npm run build
-      - cp package.json dist/
-      - cp -R node_modules dist/
+
 artifacts:
   files:
     - '**/*'
-  base-directory: dist
