@@ -17,7 +17,7 @@ phases:
       - cat src/config/firestore/config.json
   build:
     commands:
-      - npm run build
+      - ls -a
 
 artifacts:
   files:
