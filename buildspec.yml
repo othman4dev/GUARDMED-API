@@ -7,7 +7,7 @@ phases:
   pre_build:
     commands:
       - mkdir -p src/config/firestore
-      - aws s3 cp https://firestoreconfig.s3.eu-north-1.amazonaws.com/secret.json src/config/firestore/config.json
+      - aws s3 cp s3://firestoreconfig/secret.json src/config/firestore/config.json
   build:
     commands:
       - npm run build
