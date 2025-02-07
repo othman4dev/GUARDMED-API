@@ -6,18 +6,13 @@ phases:
       - npm install
   pre_build:
     commands:
-      - pwd
-      - ls
       - mkdir -p src/config/firestore
-      - aws s3 cp s3://firestoreconfig/secret.json src/config/firestore/config.json
       - mkdir -p build/config/firestore
+      - aws s3 cp s3://firestoreconfig/secret.json src/config/firestore/config.json
       - cp src/config/firestore/config.json build/config/firestore/config.json
-      - ls -a
-      - ls src/config/firestore
-      - cat src/config/firestore/config.json
   build:
     commands:
-      - ls -a
+      - npm run build
 
 artifacts:
   files:
