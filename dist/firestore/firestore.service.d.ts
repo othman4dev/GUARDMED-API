@@ -3,6 +3,7 @@ import { DatabaseTables } from 'src/enums/database-tables.enum';
 export declare class FirestoreService {
     private configService;
     private db;
+    private readonly logger;
     constructor(configService: ConfigService);
     getAllDocuments(collection: DatabaseTables): Promise<any[]>;
     getDocument(collection: DatabaseTables, id: string): Promise<any>;

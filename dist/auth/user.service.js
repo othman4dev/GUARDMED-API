@@ -48,11 +48,16 @@ const user_repository_1 = require("../repositories/user.repository");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcryptjs"));
 const mail_service_1 = require("../mail/mail.service");
+const storage_service_1 = require("../storage/storage.service");
+const user_profile_dto_1 = require("./dto/user-profile.dto");
+const local_storage_service_1 = require("../storage/local-storage.service");
 let UserService = class UserService {
-    constructor(userRepository, mailService, jwtService) {
+    constructor(userRepository, mailService, jwtService, storageService, localStorageService) {
         this.userRepository = userRepository;
         this.mailService = mailService;
         this.jwtService = jwtService;
+        this.storageService = storageService;
+        this.localStorageService = localStorageService;
     }
     async login(loginDto) {
         const user = await this.userRepository.findByEmail(loginDto.email);
@@ -61,16 +66,16 @@ let UserService = class UserService {
         }
         const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
         if (!isPasswordValid) {
-            throw new common_1.BadRequestException('Invalid email or password');
+            throw new common_1.BadRequestException('Invalid password');
         }
         if (!user.verified) {
             throw new common_1.UnauthorizedException('User not verified');
         }
         const payload = { username: user.email, sub: user.id };
         return {
-            message: 'Login successful',
-            role: user.role,
             access_token: this.jwtService.sign(payload),
+            role: user.role,
+            userId: user.id,
         };
     }
     async register(registerDto) {
@@ -90,7 +95,7 @@ let UserService = class UserService {
         };
         const userId = await this.userRepository.create(newUser);
         await this.mailService.sendUserConfirmation(registerDto.email, newUser.code);
-        return { message: 'User created', userId, email: registerDto.email };
+        return { userId, email: registerDto.email };
     }
     async verify(verifyDto) {
         const user = await this.userRepository.findById(verifyDto.id);
@@ -106,54 +111,92 @@ let UserService = class UserService {
         const updated = await this.userRepository.update(verifyDto.id, {
             verified: true,
         });
-        return { message: 'User verified', email: user.email, userId: user.id };
+        return { message: 'User verified', status: 200 };
     }
-    async forgotPassword(ForgotDto) {
-        const user = await this.userRepository.findByEmail(ForgotDto.email);
+    async forgotPassword(email) {
+        const user = await this.userRepository.findByEmail(email);
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
         const code = Math.floor(100000 + Math.random() * 900000);
         await this.userRepository.update(user.id, { code });
-        await this.mailService.sendResetPassword(ForgotDto.email, code);
-        return {
-            message: 'Code sent to email',
-            email: ForgotDto.email,
-            userId: user.id,
-        };
+        await this.mailService.sendResetPassword(email, code);
+        return email;
     }
-    async resetPassword(ResetDto) {
-        const user = await this.userRepository.findByEmail(ResetDto.email);
+    async resetPassword(code, email) {
+        const user = await this.userRepository.findByEmail(email);
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
-        if (ResetDto.code !== user.code) {
+        if (code !== user.code) {
             throw new common_1.BadRequestException('Invalid code');
         }
-        return { message: 'Code verified', email: ResetDto.email };
+        return true;
     }
-    async newPassword(newPasswordDto) {
-        const user = await this.userRepository.findByEmail(newPasswordDto.email);
+    async newPassword(email, password) {
+        const user = await this.userRepository.findByEmail(email);
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
-        const hashedPassword = await bcrypt.hash(newPasswordDto.password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
         await this.userRepository.update(user.id, { password: hashedPassword });
-        return { message: 'Password updated', email: newPasswordDto.email };
+        return true;
     }
-    async resendCode(ForgotDto) {
-        const user = await this.userRepository.findByEmail(ForgotDto.email);
+    async getUserProfile(userId) {
+        const user = await this.userRepository.findById(userId);
         if (!user) {
             throw new common_1.NotFoundException('User not found');
         }
-        const code = Math.floor(1000 + Math.random() * 9000);
-        await this.userRepository.update(user.id, { code: code });
-        await this.mailService.sendUserConfirmation(ForgotDto.email, code);
-        return {
-            message: 'Code sent to email',
-            email: ForgotDto.email,
-            userId: user.id,
-        };
+        return new user_profile_dto_1.UserProfileDto({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            verified: user.verified,
+            profilePicture: user.profilePicture,
+            bannerPicture: user.bannerPicture,
+            bio: user.bio,
+            phoneNumber: user.phoneNumber,
+            address: user.address,
+            favorites: user.favorites
+        });
+    }
+    async updateUserProfile(userId, updateUserDto, profilePicture, bannerPicture) {
+        try {
+            const user = await this.userRepository.findById(userId);
+            if (!user) {
+                throw new common_1.NotFoundException('User not found');
+            }
+            const updateData = { ...updateUserDto };
+            if (profilePicture) {
+                const profilePath = await this.localStorageService.saveFile(profilePicture, 'profile');
+                updateData.profilePicture = profilePath;
+            }
+            if (bannerPicture) {
+                const bannerPath = await this.localStorageService.saveFile(bannerPicture, 'banner');
+                updateData.bannerPicture = bannerPath;
+            }
+            await this.userRepository.update(userId, updateData);
+            return this.userRepository.findById(userId);
+        }
+        catch (error) {
+            console.error('Update profile error:', error);
+            throw error;
+        }
+    }
+    async deleteUserProfile(userId) {
+        const user = await this.userRepository.findById(userId);
+        if (!user) {
+            throw new common_1.NotFoundException('User not found');
+        }
+        if (user.profilePicture) {
+            await this.storageService.deleteFile(user.profilePicture);
+        }
+        if (user.bannerPicture) {
+            await this.storageService.deleteFile(user.bannerPicture);
+        }
+        await this.userRepository.delete(userId);
+        return { message: 'Profile deleted successfully' };
     }
 };
 exports.UserService = UserService;
@@ -161,6 +204,8 @@ exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [user_repository_1.UserRepository,
         mail_service_1.MailService,
-        jwt_1.JwtService])
+        jwt_1.JwtService,
+        storage_service_1.StorageService,
+        local_storage_service_1.LocalStorageService])
 ], UserService);
 //# sourceMappingURL=user.service.js.map

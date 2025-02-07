@@ -13,7 +13,7 @@ export class RegisterDto {
   @MinLength(8)
   password: string;
 
-  favourite: [string];
+  favourite: string[];
 
   role: string;
 

@@ -7,12 +7,12 @@ export declare class UserRepository {
     constructor(firestoreService: FirestoreService, pharmacyRepository: PharmacyRepository);
     create(user: UserInterface): Promise<string>;
     findAll(): Promise<UserInterface[]>;
-    findById(id: string): Promise<UserInterface | null>;
+    findById(id: string): Promise<any>;
     findByEmail(email: string): Promise<UserInterface | null>;
-    update(id: string, user: Partial<UserInterface>): Promise<void>;
+    update(id: string, data: any): Promise<void>;
     delete(id: string): Promise<void>;
     addFavorite(userId: string, favoriteId: string): Promise<void>;
     removeFavorite(userId: string, favoriteId: string): Promise<void>;
-    findAllFavorites(userId: string): Promise<import("../interfaces/pharmacy.interface").PharmacyInterface[]>;
+    findAllFavorites(userId: string): Promise<any[]>;
     removeField(table: string, field: string): Promise<void>;
 }

@@ -8,9 +8,9 @@ import { PharmacyRepository } from './repositories/pharmacy.repository';
 import { ReviewRepository } from './repositories/review.repository';
 import { FavoritesModule } from './favorites/favorites.module';
 import { UserModule } from './auth/user.module';
+import { MailModule } from './mail/mail.module';
 import { PharmacyModule } from './pharmacies/pharmacy.module';
 import { ReviewModule } from './reviews/review.module';
-import { JwtModule } from '@nestjs/jwt';
 
 @Global()
 @Module({
@@ -21,9 +21,9 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     FavoritesModule,
     UserModule,
+    MailModule,
     PharmacyModule,
     ReviewModule,
-    JwtModule
   ],
   controllers: [AppController],
   providers: [AppService, UserRepository, PharmacyRepository, ReviewRepository],

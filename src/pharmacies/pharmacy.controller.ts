@@ -8,15 +8,13 @@ import {
     Param,
     HttpException,
     HttpStatus,
-    Query,
-    UseGuards, BadRequestException
+    UseGuards,
 } from '@nestjs/common';
 import { PharmacyService } from './pharmacy.service';
 import { CreatePharmacyDto } from './dto/create-pharmacy.dto';
 import { UpdatePharmacyDto } from './dto/update-pharmacy.dto';
 import { PharmacyResponseDto } from './dto/pharmacy-response.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { PharmacyInterface } from '../interfaces/pharmacy.interface';
 
 @Controller('pharmacies')
 @UseGuards(AuthGuard('jwt'))
@@ -48,6 +46,21 @@ export class PharmacyController {
         }
     }
 
+    @Get(':id')
+    async findOne(@Param('id') id: string): Promise<PharmacyResponseDto> {
+        try {
+            const pharmacy = await this.pharmacyService.getPharmacyById(id);
+            if (!pharmacy) {
+                throw new HttpException('Pharmacy not found', HttpStatus.NOT_FOUND);
+            }
+            return new PharmacyResponseDto(pharmacy);
+        } catch (error) {
+            throw new HttpException(
+                error.message || 'Failed to fetch pharmacy',
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
 
     @Put(':id')
     async update(
@@ -59,8 +72,8 @@ export class PharmacyController {
             return { message: 'Pharmacy updated successfully' };
         } catch (error) {
             throw new HttpException(
-                'Failed to update pharmacy',
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                error.message || 'Failed to update pharmacy',
+                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
     }
@@ -77,36 +90,4 @@ export class PharmacyController {
             );
         }
     }
-    @Get('nearby-guard')
-    async getNearbyGuardPharmacies(
-        @Query('lat') lat: string,
-        @Query('lng') lng: string,
-    ): Promise<PharmacyInterface[]> {
-        const latitude = parseFloat(lat);
-        const longitude = parseFloat(lng);
-    
-        if (isNaN(latitude) || isNaN(longitude)) {
-            throw new BadRequestException('Invalid latitude or longitude');
-        }
-    
-        return this.pharmacyService.getNearbyGuardPharmacies(latitude, longitude);
-    }
-    
-
-    @Get(':id')
-    async findOne(@Param('id') id: string): Promise<PharmacyResponseDto> {
-        try {
-            const pharmacy = await this.pharmacyService.getPharmacyById(id);
-            if (!pharmacy) {
-                throw new HttpException('Pharmacy not found', HttpStatus.NOT_FOUND);
-            }
-            return new PharmacyResponseDto(pharmacy);
-        } catch (error) {
-            throw new HttpException(
-                error.message || 'Failed to fetch pharmacy',
-                error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-            );
-        }
-    }
-    
 } 

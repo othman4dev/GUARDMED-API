@@ -17,9 +17,9 @@ const pharmacy_repository_1 = require("./repositories/pharmacy.repository");
 const review_repository_1 = require("./repositories/review.repository");
 const favorites_module_1 = require("./favorites/favorites.module");
 const user_module_1 = require("./auth/user.module");
+const mail_module_1 = require("./mail/mail.module");
 const pharmacy_module_1 = require("./pharmacies/pharmacy.module");
 const review_module_1 = require("./reviews/review.module");
-const jwt_1 = require("@nestjs/jwt");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -33,9 +33,9 @@ exports.AppModule = AppModule = __decorate([
             }),
             favorites_module_1.FavoritesModule,
             user_module_1.UserModule,
+            mail_module_1.MailModule,
             pharmacy_module_1.PharmacyModule,
             review_module_1.ReviewModule,
-            jwt_1.JwtModule
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService, user_repository_1.UserRepository, pharmacy_repository_1.PharmacyRepository, review_repository_1.ReviewRepository],

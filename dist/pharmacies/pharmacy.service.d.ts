@@ -10,5 +10,4 @@ export declare class PharmacyService {
     getPharmacyById(id: string): Promise<PharmacyInterface | null>;
     updatePharmacy(id: string, pharmacy: UpdatePharmacyDto): Promise<PharmacyInterface>;
     deletePharmacy(id: string): Promise<void>;
-    getNearbyGuardPharmacies(latitude: number, longitude: number): Promise<PharmacyInterface[]>;
 }

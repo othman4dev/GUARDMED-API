@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UserRepository } from '../repositories/user.repository';
 import { LoginDto } from './dto/login.dto';
@@ -10,10 +11,14 @@ import { RegisterDto } from './dto/register.dto';
 import { VerifyDto } from './dto/verify.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { MailService } from 'src/mail/mail.service';
-import { ResetDto } from './dto/reset.dto';
-import { ForgotDto } from './dto/forgot.dto';
-import { NewPasswordDto } from './dto/new-password.dto';
+import { MailModule } from '../mail/mail.module';
+import { MailService } from '../mail/mail.service';
+import { messaging } from 'firebase-admin';
+import { StorageService } from '../storage/storage.service';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { UserProfileDto } from './dto/user-profile.dto';
+import * as fs from 'fs';
+import { LocalStorageService } from '../storage/local-storage.service';
 
 @Injectable()
 export class UserService {
@@ -21,6 +26,8 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly mailService: MailService,
     private readonly jwtService: JwtService,
+    private readonly storageService: StorageService,
+    private readonly localStorageService: LocalStorageService
   ) { }
 
   async login(loginDto: LoginDto) {
@@ -32,18 +39,17 @@ export class UserService {
       loginDto.password,
       user.password,
     );
-
     if (!isPasswordValid) {
-      throw new BadRequestException('Invalid email or password');
+      throw new BadRequestException('Invalid password');
     }
     if (!user.verified) {
       throw new UnauthorizedException('User not verified');
     }
     const payload = { username: user.email, sub: user.id };
     return {
-      message: 'Login successful',
-      role: user.role,
       access_token: this.jwtService.sign(payload),
+      role: user.role,
+      userId  : user.id,
     };
   }
 
@@ -62,16 +68,9 @@ export class UserService {
       verified: false,
       code: Math.floor(1000 + Math.random() * 9000),
     };
-    
     const userId = await this.userRepository.create(newUser);
-
-    // Send verification email
-    await this.mailService.sendUserConfirmation(
-      registerDto.email,
-      newUser.code,
-    );
-
-    return { message: 'User created', userId, email: registerDto.email };
+    await this.mailService.sendUserConfirmation(registerDto.email, newUser.code);
+    return { userId, email: registerDto.email };
   }
 
   async verify(verifyDto: VerifyDto) {
@@ -89,58 +88,110 @@ export class UserService {
     const updated = await this.userRepository.update(verifyDto.id, {
       verified: true,
     });
-
-    return { message: 'User verified', email: user.email, userId: user.id };
+    return { message: 'User verified', status: 200 };
   }
 
-  async forgotPassword(ForgotDto: ForgotDto) {
-    const user = await this.userRepository.findByEmail(ForgotDto.email);
+  async forgotPassword(email: string) {
+    const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new NotFoundException('User not found');
     }
     const code = Math.floor(100000 + Math.random() * 900000);
     await this.userRepository.update(user.id, { code });
-    await this.mailService.sendResetPassword(ForgotDto.email, code);
-    return {
-      message: 'Code sent to email',
-      email: ForgotDto.email,
-      userId: user.id,
-    };
+    await this.mailService.sendResetPassword(email, code);
+    return email;
   }
 
-  async resetPassword(ResetDto: ResetDto) {
-    const user = await this.userRepository.findByEmail(ResetDto.email);
+  async resetPassword(code: number, email: string) {
+    const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    if (ResetDto.code !== user.code) {
+    if (code !== user.code) {
       throw new BadRequestException('Invalid code');
     }
-    return { message: 'Code verified', email: ResetDto.email };
+    return true;
   }
 
-  async newPassword(newPasswordDto: NewPasswordDto) {
-    const user = await this.userRepository.findByEmail(newPasswordDto.email);
+  async newPassword(email: string, password: string) {
+    const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const hashedPassword = await bcrypt.hash(newPasswordDto.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     await this.userRepository.update(user.id, { password: hashedPassword });
-    return { message: 'Password updated', email: newPasswordDto.email };
+    return true;
   }
 
-  async resendCode(ForgotDto: ForgotDto) {
-    const user = await this.userRepository.findByEmail(ForgotDto.email);
+  async getUserProfile(userId: string): Promise<UserProfileDto> {
+    const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    const code = Math.floor(1000 + Math.random() * 9000);
-    await this.userRepository.update(user.id, { code: code });
-    await this.mailService.sendUserConfirmation(ForgotDto.email, code);
-    return {
-      message: 'Code sent to email',
-      email: ForgotDto.email,
-      userId: user.id,
-    };
+
+    return new UserProfileDto({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      verified: user.verified,
+      profilePicture: user.profilePicture,
+      bannerPicture: user.bannerPicture,
+      bio: user.bio,
+      phoneNumber: user.phoneNumber,
+      address: user.address,
+      favorites: user.favorites
+    });
+  }
+
+  async updateUserProfile(
+    userId: string,
+    updateUserDto: UpdateUserDto,
+    profilePicture?: Express.Multer.File,
+    bannerPicture?: Express.Multer.File,
+  ) {
+    try {
+      const user = await this.userRepository.findById(userId);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const updateData: any = { ...updateUserDto };
+
+      // Gérer l'upload de la photo de profil
+      if (profilePicture) {
+        const profilePath = await this.localStorageService.saveFile(profilePicture, 'profile');
+        updateData.profilePicture = profilePath;
+      }
+
+      // Gérer l'upload de la bannière
+      if (bannerPicture) {
+        const bannerPath = await this.localStorageService.saveFile(bannerPicture, 'banner');
+        updateData.bannerPicture = bannerPath;
+      }
+
+      await this.userRepository.update(userId, updateData);
+      return this.userRepository.findById(userId);
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw error;
+    }
+  }
+
+  async deleteUserProfile(userId: string) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.profilePicture) {
+      await this.storageService.deleteFile(user.profilePicture);
+    }
+    if (user.bannerPicture) {
+      await this.storageService.deleteFile(user.bannerPicture);
+    }
+
+    await this.userRepository.delete(userId);
+    return { message: 'Profile deleted successfully' };
   }
 }

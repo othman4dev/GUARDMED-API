@@ -1,9 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PharmacyRepository } from '../repositories/pharmacy.repository';
 import { PharmacyInterface } from '../interfaces/pharmacy.interface';
 import { CreatePharmacyDto } from './dto/create-pharmacy.dto';
 import { UpdatePharmacyDto } from './dto/update-pharmacy.dto';
-import { calculateDistance } from './helpers/helper';
 
 @Injectable()
 export class PharmacyService {
@@ -36,27 +35,27 @@ export class PharmacyService {
         id: string,
         pharmacy: UpdatePharmacyDto,
     ): Promise<PharmacyInterface> {
-        await this.pharmacyRepository.update(id, pharmacy);
+        const existingPharmacy = await this.pharmacyRepository.findById(id);
+        if (!existingPharmacy) {
+            throw new Error(`Pharmacy with id ${id} not found`);
+        }
+        const plainPharmacy = {
+            ...pharmacy,
+            location: pharmacy.location && {
+                lat: pharmacy.location.lat,
+                lng: pharmacy.location.lng
+            },
+            openingHours: pharmacy.openingHours && {
+                open_at: pharmacy.openingHours.open_at,
+                close_at: pharmacy.openingHours.close_at
+            }
+        };
+    
+        await this.pharmacyRepository.update(id, plainPharmacy);
         return this.pharmacyRepository.findById(id);
     }
 
     async deletePharmacy(id: string): Promise<void> {
         return this.pharmacyRepository.delete(id);
-    }
-    async getNearbyGuardPharmacies(latitude: number, longitude: number): Promise<PharmacyInterface[]> {
-      const pharmacies = await this.pharmacyRepository.findAll();
-  
-      // Filter pharmacies by distance
-      const nearbyPharmacies = pharmacies.filter((pharmacy) => {
-        const distance = calculateDistance(
-          latitude,
-          longitude,
-          pharmacy.location.lat,
-          pharmacy.location.lng
-        );
-        return distance <= 10; 
-      });
-  
-      return nearbyPharmacies;
     }
 } 

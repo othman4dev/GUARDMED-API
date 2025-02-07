@@ -27,13 +27,17 @@ export class PharmacyRepository {
   async update(
     id: string,
     pharmacy: Partial<PharmacyInterface>,
-  ): Promise<void> {
-    return this.firestoreService.updateDocument(
-      DatabaseTables.PHARMACY,
-      id,
-      pharmacy,
-    );
-  }
+): Promise<void> { 
+    try {
+        return await this.firestoreService.updateDocument(
+            DatabaseTables.PHARMACY,
+            id,
+            pharmacy,
+        );
+    } catch (error) {
+        throw error;
+    }
+}
 
   async delete(id: string): Promise<void> {
     return this.firestoreService.deleteDocument(DatabaseTables.PHARMACY, id);

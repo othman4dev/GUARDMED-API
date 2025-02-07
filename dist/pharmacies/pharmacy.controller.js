@@ -41,32 +41,6 @@ let PharmacyController = class PharmacyController {
             throw new common_1.HttpException('Failed to fetch pharmacies', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    async update(id, updatePharmacyDto) {
-        try {
-            await this.pharmacyService.updatePharmacy(id, updatePharmacyDto);
-            return { message: 'Pharmacy updated successfully' };
-        }
-        catch (error) {
-            throw new common_1.HttpException('Failed to update pharmacy', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    async remove(id) {
-        try {
-            await this.pharmacyService.deletePharmacy(id);
-            return { message: 'Pharmacy deleted successfully' };
-        }
-        catch (error) {
-            throw new common_1.HttpException('Failed to delete pharmacy', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    async getNearbyGuardPharmacies(lat, lng) {
-        const latitude = parseFloat(lat);
-        const longitude = parseFloat(lng);
-        if (isNaN(latitude) || isNaN(longitude)) {
-            throw new common_1.BadRequestException('Invalid latitude or longitude');
-        }
-        return this.pharmacyService.getNearbyGuardPharmacies(latitude, longitude);
-    }
     async findOne(id) {
         try {
             const pharmacy = await this.pharmacyService.getPharmacyById(id);
@@ -77,6 +51,24 @@ let PharmacyController = class PharmacyController {
         }
         catch (error) {
             throw new common_1.HttpException(error.message || 'Failed to fetch pharmacy', error.status || common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async update(id, updatePharmacyDto) {
+        try {
+            await this.pharmacyService.updatePharmacy(id, updatePharmacyDto);
+            return { message: 'Pharmacy updated successfully' };
+        }
+        catch (error) {
+            throw new common_1.HttpException(error.message || 'Failed to update pharmacy', error.status || common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async remove(id) {
+        try {
+            await this.pharmacyService.deletePharmacy(id);
+            return { message: 'Pharmacy deleted successfully' };
+        }
+        catch (error) {
+            throw new common_1.HttpException('Failed to delete pharmacy', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 };
@@ -95,6 +87,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PharmacyController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], PharmacyController.prototype, "findOne", null);
+__decorate([
     (0, common_1.Put)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -109,21 +108,6 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], PharmacyController.prototype, "remove", null);
-__decorate([
-    (0, common_1.Get)('nearby-guard'),
-    __param(0, (0, common_1.Query)('lat')),
-    __param(1, (0, common_1.Query)('lng')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", Promise)
-], PharmacyController.prototype, "getNearbyGuardPharmacies", null);
-__decorate([
-    (0, common_1.Get)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", Promise)
-], PharmacyController.prototype, "findOne", null);
 exports.PharmacyController = PharmacyController = __decorate([
     (0, common_1.Controller)('pharmacies'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),

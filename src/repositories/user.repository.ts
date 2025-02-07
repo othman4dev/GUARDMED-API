@@ -9,7 +9,7 @@ export class UserRepository {
   constructor(
     private readonly firestoreService: FirestoreService,
     private readonly pharmacyRepository: PharmacyRepository,
-  ) {}
+  ) { }
 
   async create(user: UserInterface): Promise<string> {
     return this.firestoreService.addDocument(DatabaseTables.USER, user);
@@ -21,19 +21,40 @@ export class UserRepository {
     ) as Promise<UserInterface[]>;
   }
 
-  async findById(id: string): Promise<UserInterface | null> {
-    return this.firestoreService.getDocument(
-      DatabaseTables.USER,
-      id,
-    ) as Promise<UserInterface | null>;
+  async findById(id: string): Promise<any> {
+    try {
+      console.log('Finding user by ID:', id);
+      if (!id) {
+        throw new Error('User ID is required');
+      }
+      
+      const userDoc = await this.firestoreService.getDocument(DatabaseTables.USER, id);
+      if (!userDoc) {
+        return null;
+      }
+      return { id, ...userDoc };
+    } catch (error) {
+      console.error('Find user by ID error:', error);
+      throw error;
+    }
   }
 
   async findByEmail(email: string): Promise<UserInterface | null> {
     return (await this.findAll()).find((user) => user.email === email) || null;
   }
 
-  async update(id: string, user: Partial<UserInterface>): Promise<void> {
-    return this.firestoreService.updateDocument(DatabaseTables.USER, id, user);
+  async update(id: string, data: any): Promise<void> {
+    try {
+      console.log('Updating user:', id, data);
+      if (!id) {
+        throw new Error('User ID is required');
+      }
+      
+      await this.firestoreService.updateDocument(DatabaseTables.USER, id, data);
+    } catch (error) {
+      console.error('Update user error:', error);
+      throw error;
+    }
   }
 
   async delete(id: string): Promise<void> {
@@ -77,8 +98,8 @@ export class UserRepository {
       favorites.map((id) => this.pharmacyRepository.findById(id)),
     );
     return favoritePharmacy;
-
   }
+
   async removeField(table: string, field: string) {
     return this.firestoreService.removeField(table, field);
   }

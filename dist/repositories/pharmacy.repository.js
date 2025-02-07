@@ -27,7 +27,12 @@ let PharmacyRepository = class PharmacyRepository {
         return this.firestoreService.getDocument(database_tables_enum_1.DatabaseTables.PHARMACY, id);
     }
     async update(id, pharmacy) {
-        return this.firestoreService.updateDocument(database_tables_enum_1.DatabaseTables.PHARMACY, id, pharmacy);
+        try {
+            return await this.firestoreService.updateDocument(database_tables_enum_1.DatabaseTables.PHARMACY, id, pharmacy);
+        }
+        catch (error) {
+            throw error;
+        }
     }
     async delete(id) {
         return this.firestoreService.deleteDocument(database_tables_enum_1.DatabaseTables.PHARMACY, id);

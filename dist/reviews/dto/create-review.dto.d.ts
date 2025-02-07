@@ -1,6 +1,7 @@
 import { FieldValue } from 'firebase-admin/firestore';
 export interface ReviewData {
     userId: string;
+    userName: string;
     pharmacyId: string;
     rating: number;
     createdAt: Date | FieldValue;

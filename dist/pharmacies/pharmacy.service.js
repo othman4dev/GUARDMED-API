@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PharmacyService = void 0;
 const common_1 = require("@nestjs/common");
 const pharmacy_repository_1 = require("../repositories/pharmacy.repository");
-const helper_1 = require("./helpers/helper");
 let PharmacyService = class PharmacyService {
     constructor(pharmacyRepository) {
         this.pharmacyRepository = pharmacyRepository;
@@ -38,19 +37,26 @@ let PharmacyService = class PharmacyService {
         return this.pharmacyRepository.findById(id);
     }
     async updatePharmacy(id, pharmacy) {
-        await this.pharmacyRepository.update(id, pharmacy);
+        const existingPharmacy = await this.pharmacyRepository.findById(id);
+        if (!existingPharmacy) {
+            throw new Error(`Pharmacy with id ${id} not found`);
+        }
+        const plainPharmacy = {
+            ...pharmacy,
+            location: pharmacy.location && {
+                lat: pharmacy.location.lat,
+                lng: pharmacy.location.lng
+            },
+            openingHours: pharmacy.openingHours && {
+                open_at: pharmacy.openingHours.open_at,
+                close_at: pharmacy.openingHours.close_at
+            }
+        };
+        await this.pharmacyRepository.update(id, plainPharmacy);
         return this.pharmacyRepository.findById(id);
     }
     async deletePharmacy(id) {
         return this.pharmacyRepository.delete(id);
-    }
-    async getNearbyGuardPharmacies(latitude, longitude) {
-        const pharmacies = await this.pharmacyRepository.findAll();
-        const nearbyPharmacies = pharmacies.filter((pharmacy) => {
-            const distance = (0, helper_1.calculateDistance)(latitude, longitude, pharmacy.location.lat, pharmacy.location.lng);
-            return distance <= 10;
-        });
-        return nearbyPharmacies;
     }
 };
 exports.PharmacyService = PharmacyService;

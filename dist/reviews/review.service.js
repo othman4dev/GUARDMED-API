@@ -14,14 +14,20 @@ const common_1 = require("@nestjs/common");
 const firestore_1 = require("firebase-admin/firestore");
 const review_repository_1 = require("../repositories/review.repository");
 const pharmacy_service_1 = require("../pharmacies/pharmacy.service");
+const user_service_1 = require("../auth/user.service");
 let ReviewService = class ReviewService {
-    constructor(reviewRepository, pharmacyService) {
+    constructor(reviewRepository, pharmacyService, userService) {
         this.reviewRepository = reviewRepository;
         this.pharmacyService = pharmacyService;
+        this.userService = userService;
     }
     async createReview(userId, createReviewDto) {
         if (!userId) {
             throw new common_1.BadRequestException('User ID is required');
+        }
+        const userProfile = await this.userService.getUserProfile(userId);
+        if (!userProfile) {
+            throw new common_1.NotFoundException('User not found');
         }
         const pharmacy = await this.pharmacyService.getPharmacyById(createReviewDto.pharmacyId);
         if (!pharmacy) {
@@ -29,6 +35,7 @@ let ReviewService = class ReviewService {
         }
         const reviewData = {
             userId,
+            userName: userProfile.name,
             pharmacyId: createReviewDto.pharmacyId,
             rating: createReviewDto.rating,
             createdAt: firestore_1.FieldValue.serverTimestamp(),
@@ -63,6 +70,7 @@ exports.ReviewService = ReviewService;
 exports.ReviewService = ReviewService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [review_repository_1.ReviewRepository,
-        pharmacy_service_1.PharmacyService])
+        pharmacy_service_1.PharmacyService,
+        user_service_1.UserService])
 ], ReviewService);
 //# sourceMappingURL=review.service.js.map

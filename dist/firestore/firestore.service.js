@@ -41,24 +41,44 @@ var __importStar = (this && this.__importStar) || (function () {
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var FirestoreService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FirestoreService = void 0;
 const common_1 = require("@nestjs/common");
 const admin = __importStar(require("firebase-admin"));
-const secret_json_1 = __importDefault(require("../config/firestore/secret.json"));
 const config_1 = require("@nestjs/config");
 const firestore_1 = require("firebase-admin/firestore");
 const firebase_admin_1 = require("firebase-admin");
-let FirestoreService = class FirestoreService {
+let FirestoreService = FirestoreService_1 = class FirestoreService {
     constructor(configService) {
         this.configService = configService;
-        admin.initializeApp({
-            credential: admin.credential.cert(secret_json_1.default),
-            databaseURL: this.configService.get('FIRESTORE_DATABASE_URL'),
-        });
+        this.logger = new common_1.Logger(FirestoreService_1.name);
+        if (!admin.apps.length) {
+            try {
+                const serviceAccount = {
+                    type: 'service_account',
+                    project_id: this.configService.get('FIREBASE_PROJECT_ID'),
+                    private_key_id: this.configService.get('FIREBASE_PRIVATE_KEY_ID'),
+                    private_key: this.configService.get('FIREBASE_PRIVATE_KEY')?.replace(/\\n/g, '\n'),
+                    client_email: this.configService.get('FIREBASE_CLIENT_EMAIL'),
+                    client_id: this.configService.get('FIREBASE_CLIENT_ID'),
+                    auth_uri: this.configService.get('FIREBASE_AUTH_URI'),
+                    token_uri: this.configService.get('FIREBASE_TOKEN_URI'),
+                    auth_provider_x509_cert_url: this.configService.get('FIREBASE_AUTH_CERT_URL'),
+                    client_x509_cert_url: this.configService.get('FIREBASE_CLIENT_CERT_URL'),
+                };
+                this.logger.debug('Initializing Firebase with config:', serviceAccount);
+                admin.initializeApp({
+                    credential: admin.credential.cert(serviceAccount),
+                    databaseURL: this.configService.get('FIRESTORE_DATABASE_URL'),
+                });
+                this.logger.log('Firebase initialized successfully');
+            }
+            catch (error) {
+                this.logger.error('Error initializing Firebase:', error);
+                throw error;
+            }
+        }
         this.db = admin.firestore();
     }
     async getAllDocuments(collection) {
@@ -98,7 +118,7 @@ let FirestoreService = class FirestoreService {
     }
 };
 exports.FirestoreService = FirestoreService;
-exports.FirestoreService = FirestoreService = __decorate([
+exports.FirestoreService = FirestoreService = FirestoreService_1 = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [config_1.ConfigService])
 ], FirestoreService);

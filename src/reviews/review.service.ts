@@ -4,17 +4,24 @@ import { ReviewRepository } from '../repositories/review.repository';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewInterface } from '../interfaces/review.interface';
 import { PharmacyService } from '../pharmacies/pharmacy.service';
+import { UserService } from '../auth/user.service';
 
 @Injectable()
 export class ReviewService {
     constructor(
         private readonly reviewRepository: ReviewRepository,
         private readonly pharmacyService: PharmacyService,
+        private readonly userService: UserService,
     ) {}
 
     async createReview(userId: string, createReviewDto: CreateReviewDto): Promise<ReviewInterface> {
         if (!userId) {
             throw new BadRequestException('User ID is required');
+        }
+
+        const userProfile = await this.userService.getUserProfile(userId);
+        if (!userProfile) {
+            throw new NotFoundException('User not found');
         }
 
         const pharmacy = await this.pharmacyService.getPharmacyById(createReviewDto.pharmacyId);
@@ -24,6 +31,7 @@ export class ReviewService {
 
         const reviewData: Omit<ReviewInterface, 'id'> = {
             userId,
+            userName: userProfile.name,
             pharmacyId: createReviewDto.pharmacyId,
             rating: createReviewDto.rating,
             createdAt: FieldValue.serverTimestamp(),

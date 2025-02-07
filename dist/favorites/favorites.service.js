@@ -15,19 +15,18 @@ const user_repository_1 = require("../repositories/user.repository");
 let FavoritesService = class FavoritesService {
     constructor(userRepository) {
         this.userRepository = userRepository;
-        this.userId = 'oubX1xmZbybtA57oD0Uo';
     }
-    create(createFavoriteDto) {
-        return this.userRepository.addFavorite(this.userId, createFavoriteDto.pharmacyId);
+    create(userId, createFavoriteDto) {
+        return this.userRepository.addFavorite(userId, createFavoriteDto.pharmacyId);
     }
-    async findAll() {
-        return this.userRepository.findAllFavorites(this.userId);
+    async findAll(userId) {
+        return this.userRepository.findAllFavorites(userId);
     }
     findOne(id) {
         return `This action returns a #${id} favorite`;
     }
-    remove(id) {
-        return this.userRepository.removeFavorite(this.userId, id);
+    remove(userId, pharmacyId) {
+        return this.userRepository.removeFavorite(userId, pharmacyId);
     }
 };
 exports.FavoritesService = FavoritesService;

@@ -2,43 +2,31 @@ import { UserService } from './user.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyDto } from './dto/verify.dto';
-import { ResetDto } from './dto/reset.dto';
-import { ForgotDto } from './dto/forgot.dto';
-import { NewPasswordDto } from './dto/new-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 export declare class UserController {
     private readonly userService;
     constructor(userService: UserService);
     login(loginDto: LoginDto): Promise<{
-        message: string;
-        role: string;
         access_token: string;
+        role: string;
+        userId: string;
     }>;
     register(registerDto: RegisterDto): Promise<{
-        message: string;
         userId: string;
         email: string;
     }>;
     verify(verifyDto: VerifyDto): Promise<{
         message: string;
-        email: string;
-        userId: string;
+        status: number;
     }>;
-    forgotPassword(ForgotDto: ForgotDto): Promise<{
+    resetPassword(code: number, email: string): Promise<boolean>;
+    newPassword(password: string, email: string): Promise<boolean>;
+    getProfile(req: any): Promise<import("./dto/user-profile.dto").UserProfileDto>;
+    updateProfile(req: any, files: {
+        profilePicture?: Express.Multer.File[];
+        bannerPicture?: Express.Multer.File[];
+    }, updateUserDto: UpdateUserDto): Promise<any>;
+    deleteProfile(req: any): Promise<{
         message: string;
-        email: string;
-        userId: string;
-    }>;
-    resetPassword(ResetDto: ResetDto): Promise<{
-        message: string;
-        email: string;
-    }>;
-    resendCode(ForgotDto: ForgotDto): Promise<{
-        message: string;
-        email: string;
-        userId: string;
-    }>;
-    newPassword(newPasswordDto: NewPasswordDto): Promise<{
-        message: string;
-        email: string;
     }>;
 }

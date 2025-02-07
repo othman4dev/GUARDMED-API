@@ -26,13 +26,37 @@ let UserRepository = class UserRepository {
         return this.firestoreService.getAllDocuments(database_tables_enum_1.DatabaseTables.USER);
     }
     async findById(id) {
-        return this.firestoreService.getDocument(database_tables_enum_1.DatabaseTables.USER, id);
+        try {
+            console.log('Finding user by ID:', id);
+            if (!id) {
+                throw new Error('User ID is required');
+            }
+            const userDoc = await this.firestoreService.getDocument(database_tables_enum_1.DatabaseTables.USER, id);
+            if (!userDoc) {
+                return null;
+            }
+            return { id, ...userDoc };
+        }
+        catch (error) {
+            console.error('Find user by ID error:', error);
+            throw error;
+        }
     }
     async findByEmail(email) {
         return (await this.findAll()).find((user) => user.email === email) || null;
     }
-    async update(id, user) {
-        return this.firestoreService.updateDocument(database_tables_enum_1.DatabaseTables.USER, id, user);
+    async update(id, data) {
+        try {
+            console.log('Updating user:', id, data);
+            if (!id) {
+                throw new Error('User ID is required');
+            }
+            await this.firestoreService.updateDocument(database_tables_enum_1.DatabaseTables.USER, id, data);
+        }
+        catch (error) {
+            console.error('Update user error:', error);
+            throw error;
+        }
     }
     async delete(id) {
         return this.firestoreService.deleteDocument(database_tables_enum_1.DatabaseTables.USER, id);

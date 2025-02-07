@@ -16,43 +16,48 @@ exports.FavoritesController = void 0;
 const common_1 = require("@nestjs/common");
 const favorites_service_1 = require("./favorites.service");
 const create_favorite_dto_1 = require("./dto/create-favorite.dto");
+const passport_1 = require("@nestjs/passport");
 let FavoritesController = class FavoritesController {
     constructor(favoritesService) {
         this.favoritesService = favoritesService;
     }
-    create(createFavoriteDto) {
-        return this.favoritesService.create(createFavoriteDto);
+    create(req, createFavoriteDto) {
+        return this.favoritesService.create(req.user.userId, createFavoriteDto);
     }
-    findAll() {
-        return this.favoritesService.findAll();
+    findAll(req) {
+        return this.favoritesService.findAll(req.user.userId);
     }
-    remove(id) {
-        return this.favoritesService.remove(id);
+    remove(req, id) {
+        return this.favoritesService.remove(req.user.userId, id);
     }
 };
 exports.FavoritesController = FavoritesController;
 __decorate([
     (0, common_1.Post)(),
-    __param(0, (0, common_1.Body)()),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_favorite_dto_1.CreateFavoriteDto]),
+    __metadata("design:paramtypes", [Object, create_favorite_dto_1.CreateFavoriteDto]),
     __metadata("design:returntype", void 0)
 ], FavoritesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], FavoritesController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    __param(0, (0, common_1.Param)('id')),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", void 0)
 ], FavoritesController.prototype, "remove", null);
 exports.FavoritesController = FavoritesController = __decorate([
     (0, common_1.Controller)('favorites'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __metadata("design:paramtypes", [favorites_service_1.FavoritesService])
 ], FavoritesController);
 //# sourceMappingURL=favorites.controller.js.map

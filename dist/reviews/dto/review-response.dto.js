@@ -40,6 +40,10 @@ __decorate([
 ], ReviewResponseDto.prototype, "comment", void 0);
 __decorate([
     (0, class_transformer_1.Expose)(),
+    __metadata("design:type", String)
+], ReviewResponseDto.prototype, "userName", void 0);
+__decorate([
+    (0, class_transformer_1.Expose)(),
     __metadata("design:type", firestore_1.FieldValue)
 ], ReviewResponseDto.prototype, "createdAt", void 0);
 __decorate([

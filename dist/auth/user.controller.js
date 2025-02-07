@@ -18,9 +18,9 @@ const user_service_1 = require("./user.service");
 const login_dto_1 = require("./dto/login.dto");
 const register_dto_1 = require("./dto/register.dto");
 const verify_dto_1 = require("./dto/verify.dto");
-const reset_dto_1 = require("./dto/reset.dto");
-const forgot_dto_1 = require("./dto/forgot.dto");
-const new_password_dto_1 = require("./dto/new-password.dto");
+const passport_1 = require("@nestjs/passport");
+const update_user_dto_1 = require("./dto/update-user.dto");
+const platform_express_1 = require("@nestjs/platform-express");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
@@ -34,17 +34,37 @@ let UserController = class UserController {
     async verify(verifyDto) {
         return this.userService.verify(verifyDto);
     }
-    async forgotPassword(ForgotDto) {
-        return this.userService.forgotPassword(ForgotDto);
+    async resetPassword(code, email) {
+        return this.userService.resetPassword(code, email);
     }
-    async resetPassword(ResetDto) {
-        return this.userService.resetPassword(ResetDto);
+    async newPassword(password, email) {
+        return this.userService.newPassword(password, email);
     }
-    async resendCode(ForgotDto) {
-        return this.userService.resendCode(ForgotDto);
+    async getProfile(req) {
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('User from request:', req.user);
+        }
+        if (!req.user?.userId) {
+            throw new Error('User ID is missing from request');
+        }
+        return this.userService.getUserProfile(req.user.userId);
     }
-    async newPassword(newPasswordDto) {
-        return this.userService.newPassword(newPasswordDto);
+    async updateProfile(req, files, updateUserDto) {
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('Full request headers:', req.headers);
+            console.log('Authorization header:', req.headers.authorization);
+            console.log('User from request:', req.user);
+        }
+        if (!req.headers.authorization) {
+            throw new common_1.UnauthorizedException('No authorization token provided');
+        }
+        if (!req.user || !req.user.userId) {
+            throw new common_1.UnauthorizedException('User not authenticated');
+        }
+        return this.userService.updateUserProfile(req.user.userId, updateUserDto, files?.profilePicture?.[0], files?.bannerPicture?.[0]);
+    }
+    async deleteProfile(req) {
+        return this.userService.deleteUserProfile(req.user.userId);
     }
 };
 exports.UserController = UserController;
@@ -70,33 +90,49 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "verify", null);
 __decorate([
-    (0, common_1.Post)('forgot'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [forgot_dto_1.ForgotDto]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "forgotPassword", null);
-__decorate([
     (0, common_1.Post)('reset'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [reset_dto_1.ResetDto]),
+    __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "resetPassword", null);
-__decorate([
-    (0, common_1.Post)('resend'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [forgot_dto_1.ForgotDto]),
-    __metadata("design:returntype", Promise)
-], UserController.prototype, "resendCode", null);
 __decorate([
     (0, common_1.Post)('new-password'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [new_password_dto_1.NewPasswordDto]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "newPassword", null);
+__decorate([
+    (0, common_1.Get)('profile'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Put)('profile'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileFieldsInterceptor)([
+        { name: 'profilePicture', maxCount: 1 },
+        { name: 'bannerPicture', maxCount: 1 },
+    ])),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.UploadedFiles)()),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object, update_user_dto_1.UpdateUserDto]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.Delete)('profile'),
+    (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserController.prototype, "deleteProfile", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [user_service_1.UserService])

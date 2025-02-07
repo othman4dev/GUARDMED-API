@@ -18,6 +18,8 @@ export class ReviewResponseDto {
     comment?: string;
 
     @Expose()
+    userName: string;
+    @Expose()
     createdAt: FieldValue;
 
     @Expose()

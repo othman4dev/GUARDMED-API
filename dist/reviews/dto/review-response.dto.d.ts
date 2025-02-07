@@ -5,6 +5,7 @@ export declare class ReviewResponseDto {
     userId: string;
     rating: number;
     comment?: string;
+    userName: string;
     createdAt: FieldValue;
     updatedAt: FieldValue;
     constructor(partial: Partial<ReviewResponseDto>);
