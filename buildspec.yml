@@ -8,6 +8,7 @@ phases:
     commands:
       - mkdir -p var/app/current/src/config/firestore
       - aws s3 cp s3://firestoreconfig/secret.json var/app/surrent/src/config/firestore/config.json
+      - cat var/app/current/src/config/firestore/config.json
   build:
     commands:
       - npm run build
