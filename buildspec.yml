@@ -8,9 +8,13 @@ phases:
     commands:
       - mkdir -p src/config/firestore
       - aws s3 cp s3://firestoreconfig/secret.json src/config/firestore/config.json
+      - mkdir -p build/config/firestore
+      - cp src/config/firestore/config.json build/config/firestore/config.json
   build:
     commands:
       - npm run build
+      - mkdir -p build/config/firestore
+      - cp src/config/firestore/config.json build/config/firestore/config.json
 
 artifacts:
   files:
