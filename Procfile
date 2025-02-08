@@ -1,1 +1,1 @@
-web: sudo npm run start
+web: npm install && sudo npm run start
