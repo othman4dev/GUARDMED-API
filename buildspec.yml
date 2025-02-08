@@ -8,10 +8,10 @@ phases:
     commands:
       - pwd
       - ls -a
-      - mkdir -p var/app/current/src/config/firestore
-      - aws s3 cp s3://firestoreconfig/secret.json var/app/surrent/src/config/firestore/config.json
-      - cat var/app/current/src/config/firestore/config.json
-      - tree var/app/current/src
+      - mkdir -p /codebuild/output/src2910707537/src/src/config/firestore
+      - aws s3 cp s3://firestoreconfig/secret.json /codebuild/output/src2910707537/src/src/config/firestore/config.json
+      - cat /codebuild/output/src2910707537/src/src/config/firestore/config.json
+      - tree /codebuild/output/src2910707537/src
 
   build:
     commands:
