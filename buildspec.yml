@@ -31,4 +31,6 @@ artifacts:
   files:
     - 'dist/**/*'
     - 'node_modules/**/*'
+    - 'package.json'
+    - 'Procfile'
     - '.env'
