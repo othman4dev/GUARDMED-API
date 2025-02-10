@@ -31,5 +31,6 @@ echo "MAIL_PASS=nfcagvdvotqjsjli" | sudo tee -a .env
 echo "MAIL_FROM=GUARDMED" | sudo tee -a .env
 echo "JWT_SECRET=meow" | sudo tee -a .env
 
+sudo npm run build
 # Start the application using pm2
-sudo pm2 start npm --name "my-app" -- run start
+sudo pm2 start npm --name "my-app" -- run deploy
