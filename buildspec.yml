@@ -9,7 +9,7 @@ phases:
     commands:
       - touch .env
       - echo "FIRESTORE_DATABASE_URL=https://g-pharmacy-1cf87.firebaseio.com/" >> .env
-      - echo "PORT=8000" >> .env
+      - echo "PORT=8080" >> .env
       - echo "MAIL_HOST=smtp.gmail.com" >> .env
       - echo "MAIL_PORT=587" >> .env
       - echo "MAIL_USER=othmandevsup@gmail.com" >> .env
@@ -33,4 +33,5 @@ artifacts:
     - 'node_modules/**/*'
     - 'package.json'
     - 'Procfile'
+    - 'server.sh'
     - '.env'
