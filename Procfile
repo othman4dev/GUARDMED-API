@@ -1,1 +1,1 @@
-web: sudo server.sh
+web: chmod +x server.sh && sudo ./server.sh
