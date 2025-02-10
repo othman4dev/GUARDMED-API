@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - npm install
+
+  pre_build:
+    commands:
+      - touch .env
+      - echo "FIRESTORE_DATABASE_URL=https://g-pharmacy-1cf87.firebaseio.com/" >> .env
+      - echo "PORT=8080" >> .env
+      - echo "MAIL_HOST=smtp.gmail.com" >> .env
+      - echo "MAIL_PORT=587" >> .env
+      - echo "MAIL_USER=othmandevsup@gmail.com" >> .env
+      - echo "MAIL_PASS=nfcagvdvotqjsjli" >> .env
+      - echo "MAIL_FROM=GUARDMED" >> .env
+      - echo "JWT_SECRET=meow" >> .env
+      - cd src/
+      - mkdir -p ./config/firestore
+      - aws s3 cp s3://firestoreconfig/secret.json ./config/firestore/secret.json
+      - cd ..
+
+  test:
+    commands:
+      - npm run test
