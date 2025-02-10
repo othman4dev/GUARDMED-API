@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  DOCKER_IMAGE: mohamedhaki/guardmed-backend
-  AWS_REGION: us-east-1
-
 jobs:
   test:
     runs-on: ubuntu-latest
