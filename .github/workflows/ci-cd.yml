@@ -24,10 +24,9 @@ jobs:
 
       - name: Set Config
         run: |
-          cd src/
-          mkdir -p ./config/firestore
+          cd src/ || echo "exit"
+          mkdir -p ./config/firestore || echo "exit"
           aws s3 cp s3://firestoreconfig/secret.json ./config/firestore/secret.json || echo "Using environment variables instead of secret.json"
-          cd ..
 
       - name: Run tests
         run: npm run test
