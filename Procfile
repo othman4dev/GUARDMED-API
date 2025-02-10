@@ -1,1 +1,1 @@
-web: sudo npm run deploy
+web: sudo server.sh

@@ -20,4 +20,6 @@ artifacts:
   files:
     - 'dist/**/*'
     - 'package.json'
+    - 'Procfile'
+    - 'server.sh'
     - 'node_modules/**/*'
