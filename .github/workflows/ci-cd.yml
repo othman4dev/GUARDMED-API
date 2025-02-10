@@ -22,19 +22,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set Config
+        run: |
+          cd src/
+          mkdir -p ./config/firestore
+          aws s3 cp s3://firestoreconfig/secret.json ./config/firestore/secret.json || echo "Using environment variables instead of secret.json"
+          cd ..
+
       - name: Run tests
         run: npm run test
         env:
-          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
-          FIREBASE_PRIVATE_KEY_ID: ${{ vars.FIREBASE_PRIVATE_KEY_ID }}
-          FIREBASE_PRIVATE_KEY: ${{ vars.FIREBASE_PRIVATE_KEY }}
-          FIREBASE_CLIENT_EMAIL: ${{ vars.FIREBASE_CLIENT_EMAIL }}
-          FIREBASE_CLIENT_ID: ${{ vars.FIREBASE_CLIENT_ID }}
-          FIREBASE_AUTH_URI: ${{ vars.FIREBASE_AUTH_URI }}
-          FIREBASE_TOKEN_URI: ${{ vars.FIREBASE_TOKEN_URI }}
-          FIREBASE_AUTH_CERT_URL: ${{ vars.FIREBASE_AUTH_CERT_URL }}
-          FIREBASE_CLIENT_CERT_URL: ${{ vars.FIREBASE_CLIENT_CERT_URL }}
-          JWT_SECRET: ${{ vars.JWT_SECRET }}
-          MAIL_HOST: ${{ vars.MAIL_HOST }}
-          MAIL_PORT: ${{ vars.MAIL_PORT }}
-          MAIL_USER: ${{ vars.MAIL_USER }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_PRIVATE_KEY_ID: ${{ secrets.FIREBASE_PRIVATE_KEY_ID }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_CLIENT_ID: ${{ secrets.FIREBASE_CLIENT_ID }}
+          FIREBASE_AUTH_URI: ${{ secrets.FIREBASE_AUTH_URI }}
+          FIREBASE_TOKEN_URI: ${{ secrets.FIREBASE_TOKEN_URI }}
+          FIREBASE_AUTH_CERT_URL: ${{ secrets.FIREBASE_AUTH_CERT_URL }}
+          FIREBASE_CLIENT_CERT_URL: ${{ secrets.FIREBASE_CLIENT_CERT_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          MAIL_HOST: ${{ secrets.MAIL_HOST }}
+          MAIL_PORT: ${{ secrets.MAIL_PORT }}
+          MAIL_USER: ${{ secrets.MAIL_USER }}
