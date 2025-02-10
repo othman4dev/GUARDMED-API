@@ -1,1 +1,1 @@
-web: chmod +x server.sh && sudo ./server.sh
+web: sudo npm run deploy
