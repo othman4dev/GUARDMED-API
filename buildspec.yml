@@ -24,8 +24,6 @@ phases:
   build:
     commands:
       - npm run build
-      - ls -la
-      - ls -la dist/
 
 artifacts:
   files:
@@ -33,5 +31,4 @@ artifacts:
     - 'node_modules/**/*'
     - 'package.json'
     - 'Procfile'
-    - 'server.sh'
     - '.env'
